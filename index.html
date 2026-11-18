@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="en"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwNTc0MDY0Mzk2ODI0NzU4MTYzNSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzgyY2M1ZDgyMjlhNWIxMDFfaW5kZXguaHRtbC0xMDcifSwiZXhwIjoxNzk1MDE5MzY2LCJpYXQiOjE3OTUwMTU3NjYsImFsZyI6IlJTMjU2In0.YeY8-ShxEeUPPtbAOuD1HdKu_rqAWTUl45aUDQ4CZEzJCb4Rkcnyvf173V1_TvgdFh8QkxD3fbQ6uQhZJokifHRPiILidcEaFNu42m8xj51KybhkNHQ_1K3WMJxGowe6e8Ftjtog3KIwIxLcu_mX2kj-Ffv9J1pI6pqvKsIvddo24h1ihPzQNl-ZDi_fdq7o639cjcd0XvIOOgVonaX1RbqnwKdeiCqtp0kKaeGIFok1zuvXdsqPxiQFZVo8LOhw5kZ7lChEoFi_0MCLFwDbbmW6rE5VtYFKeZoDeRGr5lj9eiTtP9RMQb0SWKTpkeZcuS1ATuDNoKsMk_MtmN_waQ","c_82cc5d8229a5b101_index.html-107")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HAMZA: Faster Than F1 — Official UK Driving Redemption</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&amp;family=Orbitron:wght@700;900&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at top, #1e293b 0%, #090d16 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f8fafc;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-arcade {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .font-fun {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Arcade Button Styling */
+        .arcade-btn {
+            background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+            border: 3px solid #fca5a5;
+            box-shadow: 0 6px 0 #7f1d1d, 0 10px 22px rgba(220, 38, 38, 0.45);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .arcade-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #7f1d1d, 0 4px 10px rgba(220, 38, 38, 0.45);
+        }
+
+        .control-btn {
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+            border: 3px solid #93c5fd;
+            box-shadow: 0 5px 0 #1e3a8a, 0 8px 15px rgba(37, 99, 235, 0.35);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+        }
+        .control-btn:active, .control-btn.pressed {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #1e3a8a;
+            background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+        }
+
+        /* UK Photocard Driving Licence Texture & Hologram */
+        .uk-licence-card {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 38%, #e0f2fe 74%, #dbeafe 100%);
+            border: 3px solid #be185d;
+            box-shadow: 0 22px 50px rgba(0, 0, 0, 0.65), inset 0 0 28px rgba(255, 255, 255, 0.85);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .uk-licence-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.48) 50%,
+                transparent 60%
+            );
+            animation: shimmer 4s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-30%) translateY(-30%); }
+            100% { transform: translateX(30%) translateY(30%); }
+        }
+
+        @keyframes floatHero {
+            0%, 100% { transform: translateY(0px) rotate(-1.5deg); }
+            50% { transform: translateY(-7px) rotate(1.5deg); }
+        }
+
+        .animate-float {
+            animation: floatHero 2.5s ease-in-out infinite;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.72); opacity: 0; }
+            80% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-pop {
+            animation: popIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 1rem;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-1{bottom:0.25rem}.left-1\/2{left:50%}.top-14{top:3.5rem}.z-20{z-index:20}.z-30{z-index:30}.mb-0\.5{margin-bottom:0.125rem}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2{margin-bottom:0.5rem}.mb-2\.5{margin-bottom:0.625rem}.mb-3{margin-bottom:0.75rem}.mb-3\.5{margin-bottom:0.875rem}.mb-5{margin-bottom:1.25rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-2\.5{margin-top:0.625rem}.mt-3{margin-top:0.75rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.aspect-\[3\/4\]{aspect-ratio:3/4}.h-24{height:6rem}.h-32{height:8rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-9{height:2.25rem}.h-full{height:100%}.max-h-\[63vh\]{max-height:63vh}.max-h-full{max-height:100%}.w-24{width:6rem}.w-44{width:11rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-\[92\%\]{width:92%}.w-full{width:100%}.max-w-full{max-width:100%}.max-w-md{max-width:28rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes bounce{0%, 100%{transform:translateY(-25%);animation-timing-function:cubic-bezier(0.8,0,1,1)}50%{transform:none;animation-timing-function:cubic-bezier(0,0,0.2,1)}}.animate-bounce{animation:bounce 1s infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.space-y-0\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.125rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.125rem * var(--tw-space-y-reverse))}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-4{border-width:4px}.border-x{border-left-width:1px;border-right-width:1px}.border-b-2{border-bottom-width:2px}.border-amber-400\/50{border-color:rgb(251 191 36 / 0.5)}.border-amber-400\/70{border-color:rgb(251 191 36 / 0.7)}.border-emerald-400{--tw-border-opacity:1;border-color:rgb(52 211 153 / var(--tw-border-opacity, 1))}.border-pink-400\/50{border-color:rgb(244 114 182 / 0.5)}.border-pink-700\/30{border-color:rgb(190 24 93 / 0.3)}.border-pink-700\/50{border-color:rgb(190 24 93 / 0.5)}.border-slate-400{--tw-border-opacity:1;border-color:rgb(148 163 184 / var(--tw-border-opacity, 1))}.border-slate-500{--tw-border-opacity:1;border-color:rgb(100 116 139 / var(--tw-border-opacity, 1))}.border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-yellow-100{--tw-border-opacity:1;border-color:rgb(254 249 195 / var(--tw-border-opacity, 1))}.border-yellow-200{--tw-border-opacity:1;border-color:rgb(254 240 138 / var(--tw-border-opacity, 1))}.bg-amber-500\/20{background-color:rgb(245 158 11 / 0.2)}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-pink-700{--tw-bg-opacity:1;background-color:rgb(190 24 93 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-800\/90{background-color:rgb(30 41 59 / 0.9)}.bg-slate-800\/95{background-color:rgb(30 41 59 / 0.95)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-white\/85{background-color:rgb(255 255 255 / 0.85)}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-amber-300{--tw-gradient-from:#fcd34d var(--tw-gradient-from-position);--tw-gradient-to:rgb(252 211 77 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-amber-500{--tw-gradient-from:#f59e0b var(--tw-gradient-from-position);--tw-gradient-to:rgb(245 158 11 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-rose-600{--tw-gradient-from:#e11d48 var(--tw-gradient-from-position);--tw-gradient-to:rgb(225 29 72 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-sky-200{--tw-gradient-from:#bae6fd var(--tw-gradient-from-position);--tw-gradient-to:rgb(186 230 253 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-blue-100{--tw-gradient-to:rgb(219 234 254 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #dbeafe var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-red-600{--tw-gradient-to:rgb(220 38 38 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #dc2626 var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-yellow-500{--tw-gradient-to:rgb(234 179 8 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #eab308 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-amber-500{--tw-gradient-to:#f59e0b var(--tw-gradient-to-position)}.to-amber-600{--tw-gradient-to:#d97706 var(--tw-gradient-to-position)}.to-indigo-200{--tw-gradient-to:#c7d2fe var(--tw-gradient-to-position)}.to-pink-600{--tw-gradient-to:#db2777 var(--tw-gradient-to-position)}.object-contain{object-fit:contain}.p-1{padding:0.25rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pb-2{padding-bottom:0.5rem}.text-left{text-align:left}.text-center{text-align:center}.font-sans{font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"}.text-2xl{font-size:1.5rem;line-height:2rem}.text-5xl{font-size:3rem;line-height:1}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[8px\]{font-size:8px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-amber-950{--tw-text-opacity:1;color:rgb(69 26 3 / var(--tw-text-opacity, 1))}.text-blue-950{--tw-text-opacity:1;color:rgb(23 37 84 / var(--tw-text-opacity, 1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-pink-800{--tw-text-opacity:1;color:rgb(157 23 77 / var(--tw-text-opacity, 1))}.text-pink-900{--tw-text-opacity:1;color:rgb(131 24 67 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-rose-400{--tw-text-opacity:1;color:rgb(251 113 133 / var(--tw-text-opacity, 1))}.text-rose-800{--tw-text-opacity:1;color:rgb(159 18 57 / var(--tw-text-opacity, 1))}.text-sky-300{--tw-text-opacity:1;color:rgb(125 211 252 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-slate-950{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-yellow-100{--tw-text-opacity:1;color:rgb(254 249 195 / var(--tw-text-opacity, 1))}.text-yellow-300{--tw-text-opacity:1;color:rgb(253 224 71 / var(--tw-text-opacity, 1))}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.drop-shadow-\[0_10px_18px_rgba\(239\2c 68\2c 68\2c 0\.55\)\]{--tw-drop-shadow:drop-shadow(0 10px 18px rgba(239,68,68,0.55));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-md{--tw-drop-shadow:drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:h-28{height:7rem}.sm\:h-36{height:9rem}.sm\:w-28{width:7rem}.sm\:w-48{width:12rem}.sm\:p-4{padding:1rem}.sm\:p-5{padding:1.25rem}.sm\:text-2xl{font-size:1.5rem;line-height:2rem}.sm\:text-\[10px\]{font-size:10px}.sm\:text-\[11px\]{font-size:11px}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}.sm\:text-xs{font-size:0.75rem;line-height:1rem}}</style></head>
+<body class="p-3 sm:p-5">
+
+    <!-- Top Header & Sound Toggle -->
+    <header class="w-full max-w-md flex items-center justify-between mb-2.5 px-1">
+        <div class="flex items-center gap-2.5">
+            <!-- Mini Union Jack SVG -->
+            <svg viewBox="0 0 60 36" class="w-8 h-5 rounded shadow border border-slate-500 shrink-0">
+                <rect width="60" height="36" fill="#012169"></rect>
+                <path d="M0,0 L60,36 M60,0 L0,36" stroke="#ffffff" stroke-width="6"></path>
+                <path d="M0,0 L60,36 M60,0 L0,36" stroke="#C8102E" stroke-width="3"></path>
+                <path d="M30,0 V36 M0,18 H60" stroke="#ffffff" stroke-width="10"></path>
+                <path d="M30,0 V36 M0,18 H60" stroke="#C8102E" stroke-width="6"></path>
+            </svg>
+            <div>
+                <h1 class="font-arcade text-sm sm:text-base font-black tracking-wider text-amber-400 leading-tight">HAMZA GP: UK EDITION</h1>
+                <p class="text-[11px] text-slate-300 font-medium">Faster Than Formula 1 • DVSA Overruled</p>
+            </div>
+        </div>
+        <button id="soundToggle" class="p-2.5 rounded-xl bg-slate-800/90 border border-slate-600 hover:bg-slate-700 text-amber-300 transition shadow-md cursor-pointer" title="Toggle Sound">
+            <span id="soundIcon" class="text-lg">🔊</span>
+        </button>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-md flex flex-col items-center">
+        
+        <!-- HUD Bar (Visible during gameplay) -->
+        <div id="hudBar" class="hidden w-full grid grid-cols-3 gap-2 mb-2.5 bg-slate-800/95 border border-slate-700 p-2.5 rounded-2xl shadow-lg">
+            <div class="text-center">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Distance</div>
+                <div id="progressDisplay" class="font-arcade text-lg sm:text-xl font-black text-amber-400">0%</div>
+            </div>
+            <div class="text-center border-x border-slate-700">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Trophies</div>
+                <div id="scoreDisplay" class="font-arcade text-lg sm:text-xl font-black text-emerald-400">0</div>
+            </div>
+            <div class="text-center">
+                <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Lives</div>
+                <div id="livesDisplay" class="text-base sm:text-lg tracking-widest">❤️❤️❤️</div>
+            </div>
+        </div>
+
+        <!-- Game Viewport Wrapper -->
+        <div id="canvasWrapper" class="relative w-full aspect-[3/4] max-h-[63vh] bg-slate-900 rounded-2xl border-4 border-slate-700 shadow-2xl overflow-hidden">
+            <canvas id="gameCanvas" width="448" height="521"></canvas>
+
+            <!-- Dynamic F1 Overtake Banner -->
+            <div id="overtakeBanner" class="hidden absolute top-14 left-1/2 -translate-x-1/2 w-[92%] bg-gradient-to-r from-amber-500 via-red-600 to-amber-500 text-white font-arcade font-black text-center py-2.5 px-3 rounded-xl border-2 border-yellow-200 shadow-2xl z-20 animate-bounce">
+                <div class="text-xs sm:text-sm tracking-wider">⚡ TURBO F1 OVERTAKE! ⚡</div>
+                <div class="text-[11px] font-sans font-extrabold text-yellow-100">OVERTAKEN! NEW WORLD CHAMPION!</div>
+            </div>
+
+            <!-- START OVERLAY -->
+            <div id="startScreen" class="absolute inset-0 bg-slate-900/92 backdrop-blur-sm flex flex-col items-center justify-center p-4 sm:p-5 text-center z-30">
+                <!-- Custom Character Illustration (Automatically Loaded from F1-removebg-preview.jpg) -->
+                <div class="relative w-44 h-32 sm:w-48 sm:h-36 mb-1.5 flex items-center justify-center animate-float">
+                    <img id="heroMascotImg" src="F1-removebg-preview.jpg" alt="Hamza in #1 Red Sports Car" class="max-w-full max-h-full object-contain drop-shadow-[0_10px_18px_rgba(239,68,68,0.55)]">
+                </div>
+
+                <span class="px-3 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[11px] font-extrabold tracking-wide mb-1.5">
+                    SPECIAL UK REDEMPTION MISSION 🏁
+                </span>
+                <h2 class="font-fun text-xl sm:text-2xl font-bold text-white leading-tight mb-1.5">
+                    HAMZA vs F1: UK ROAD LEGEND
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-300 mb-3.5 leading-relaxed">
+                    Who needs a standard UK test when you're faster than Formula 1? Dodge <span class="text-rose-400 font-semibold">Strict DVSA Examiners</span>, <span class="text-red-400 font-semibold">Double-Decker Buses</span>, <span class="text-sky-300 font-semibold">Magic Roundabouts</span> &amp; <span class="text-amber-300 font-semibold">Speed Cameras</span>, collect <span class="text-yellow-300 font-semibold">Tea, Scones &amp; Gold Stars</span>, and overtake F1 at <span class="text-emerald-400 font-bold">100%</span>!
+                </p>
+
+                <button id="startBtn" class="arcade-btn w-full py-3.5 px-6 rounded-2xl font-arcade font-black text-base sm:text-lg text-white tracking-wider cursor-pointer">
+                    START RACE 🚀
+                </button>
+                <div class="w-full flex items-center justify-between mt-2.5 gap-2">
+                    <p class="text-[10px] sm:text-[11px] text-slate-400 text-left">
+                        Controls: Arrows (A/D), Swipe, or Buttons
+                    </p>
+                    <button id="downloadZipBtn" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[10px] font-bold text-sky-300 transition shrink-0 cursor-pointer" title="Download GitHub Pages ZIP Package">
+                        📦 GitHub ZIP
+                    </button>
+                </div>
+            </div>
+
+            <!-- GAME OVER OVERLAY -->
+            <div id="gameOverScreen" class="hidden absolute inset-0 bg-slate-900/94 backdrop-blur-sm flex flex-col items-center justify-center p-5 text-center z-30">
+                <div class="text-5xl mb-2">📋😤</div>
+                <h2 class="font-fun text-2xl font-bold text-rose-400 mb-1">Pulled Over by DVSA!</h2>
+                <p id="crashReason" class="text-xs sm:text-sm text-slate-300 mb-3">
+                    The examiner said: "Too legendary for ordinary British roads!"
+                </p>
+                <div class="bg-slate-800 border border-slate-700 rounded-xl px-5 py-2.5 mb-5">
+                    <span class="text-xs text-slate-400 block">Race Progress</span>
+                    <span id="finalFailScore" class="font-arcade text-2xl font-black text-amber-400">0%</span>
+                    <span class="text-xs text-slate-400"> / 100%</span>
+                </div>
+                <button id="retryBtn" class="arcade-btn w-full py-3.5 px-6 rounded-2xl font-arcade font-black text-base text-white tracking-wider cursor-pointer">
+                    TRY AGAIN, CHAMPION! 🔥
+                </button>
+            </div>
+        </div>
+
+        <!-- On-Screen Touch Controls (Mobile & Desktop Friendly) -->
+        <div id="touchControls" class="hidden w-full grid grid-cols-2 gap-3 mt-3">
+            <button id="btnLeft" class="control-btn py-4 rounded-2xl flex items-center justify-center text-white font-arcade font-black text-lg sm:text-xl active:scale-95 cursor-pointer">
+                ⬅️ LEFT
+            </button>
+            <button id="btnRight" class="control-btn py-4 rounded-2xl flex items-center justify-center text-white font-arcade font-black text-lg sm:text-xl active:scale-95 cursor-pointer">
+                RIGHT ➡️
+            </button>
+        </div>
+
+        <!-- REWARD SCREEN: OFFICIAL UK DRIVING LICENCE (SPECIAL F1 EDITION) -->
+        <section id="victoryScreen" class="hidden w-full animate-pop mt-1">
+            <!-- Celebration Header -->
+            <div class="text-center mb-2.5">
+                <div class="inline-block px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 text-xs font-extrabold tracking-wide mb-1">
+                    🏆 OVERTAKEN! NEW WORLD CHAMPION! 🏆
+                </div>
+                <h2 class="font-fun text-xl sm:text-2xl font-bold text-white">
+                    Hamza Officially Beat Formula 1!
+                </h2>
+            </div>
+
+            <!-- OFFICIAL UK PHOTOCARD DRIVING LICENCE -->
+            <div id="licenceCard" class="uk-licence-card rounded-2xl p-3.5 sm:p-4 text-slate-900 shadow-2xl">
+                <!-- Card Header: UK Union Jack & Official Title -->
+                <div class="flex items-center justify-between border-b-2 border-pink-700/30 pb-2 mb-2.5">
+                    <div class="flex items-center gap-2">
+                        <svg viewBox="0 0 60 36" class="w-9 h-6 rounded shadow-sm border border-slate-400 shrink-0">
+                            <rect width="60" height="36" fill="#012169"></rect>
+                            <path d="M0,0 L60,36 M60,0 L0,36" stroke="#ffffff" stroke-width="6"></path>
+                            <path d="M0,0 L60,36 M60,0 L0,36" stroke="#C8102E" stroke-width="3"></path>
+                            <path d="M30,0 V36 M0,18 H60" stroke="#ffffff" stroke-width="10"></path>
+                            <path d="M30,0 V36 M0,18 H60" stroke="#C8102E" stroke-width="6"></path>
+                        </svg>
+                        <div>
+                            <div class="text-[9px] sm:text-[10px] font-black tracking-wider text-pink-900 uppercase leading-none">OFFICIAL UK DRIVING LICENCE</div>
+                            <div class="font-arcade text-[11px] sm:text-xs font-black text-blue-950 tracking-tight leading-tight">SPECIAL F1 &amp; UNSTOPPABLE LEGEND EDITION</div>
+                        </div>
+                    </div>
+                    <!-- Holographic Gold Seal -->
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-300 via-yellow-500 to-amber-600 border-2 border-yellow-100 shadow-md flex flex-col items-center justify-center shrink-0">
+                        <span class="font-arcade text-[8px] font-black text-amber-950 leading-none">VIP</span>
+                        <span class="text-[10px] leading-none">👑</span>
+                    </div>
+                </div>
+
+                <!-- Card Middle: Driver Portrait Photo (Background Removed) + Official Details -->
+                <div class="flex gap-3 items-center mb-2.5">
+                    <!-- Photocard Portrait Box -->
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-gradient-to-b from-sky-200 via-blue-100 to-indigo-200 border-2 border-pink-700/50 flex flex-col items-center justify-center p-1 shrink-0 shadow-inner relative">
+                        <img id="licencePortraitImg" src="F1-removebg-preview.jpg" alt="Hamza Official Licence Photo" class="w-full h-full object-contain drop-shadow-md">
+                        <span class="absolute bottom-1 text-[8px] font-black uppercase bg-pink-700 text-white px-1.5 py-0.5 rounded shadow">UK-F1 #001</span>
+                    </div>
+
+                    <!-- Driver Info Fields -->
+                    <div class="flex-1 text-[11px] sm:text-xs space-y-1 leading-snug">
+                        <div>
+                            <span class="text-[9px] font-bold uppercase text-pink-800 block">1. Surname / Issued To</span>
+                            <span class="font-arcade font-black text-sm sm:text-base text-slate-950">HAMZA</span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-bold uppercase text-pink-800 block">2. Official Title</span>
+                            <span class="font-extrabold text-blue-950">UNSTOPPABLE UK ROAD LEGEND</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1">
+                            <div>
+                                <span class="text-[9px] font-bold uppercase text-pink-800 block">4c. Issuing Authority</span>
+                                <span class="font-extrabold text-rose-800 text-[10px]">DVSA (OVERRULED)</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-bold uppercase text-pink-800 block">9. Categories</span>
+                                <span class="font-extrabold text-emerald-800 text-[10px]">B • F1 • LEGEND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Endorsement Box -->
+                <div class="bg-white/85 rounded-xl p-2.5 border border-pink-400/50 mb-2.5">
+                    <div class="text-[10px] font-black uppercase text-pink-900 mb-0.5">🏅 12. Official DVSA Endorsement Notes:</div>
+                    <ul class="text-[11px] font-bold text-slate-800 leading-snug space-y-0.5">
+                        <li>• Passed with 0 minors — faster than F1 cars</li>
+                        <li>• Certified King of UK Roundabouts</li>
+                    </ul>
+                </div>
+
+                <!-- Heartwarming LDR Encouragement Note -->
+                <div class="bg-gradient-to-r from-rose-600 to-pink-600 text-white rounded-xl p-3 text-center shadow-md">
+                    <p class="text-xs sm:text-sm font-bold leading-relaxed">
+                        "Distance can't stop the best driver in the world. So proud of you, Hamza! ❤️"
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons Below Licence -->
+            <div class="mt-3 grid grid-cols-2 gap-2.5">
+                <button id="playAgainBtn" class="arcade-btn py-3 px-4 rounded-xl font-arcade font-bold text-xs sm:text-sm text-white tracking-wider cursor-pointer">
+                    🔄 PLAY AGAIN
+                </button>
+                <button id="saveToastBtn" class="bg-slate-800 hover:bg-slate-700 border-2 border-amber-400/70 py-3 px-3 rounded-xl font-arcade font-bold text-xs sm:text-sm text-amber-300 tracking-wide shadow-lg transition cursor-pointer">
+                    💾 SAVE LICENCE PNG
+                </button>
+            </div>
+            <p id="screenshotHint" class="hidden text-center text-xs text-emerald-300 font-semibold mt-2 animate-pulse">
+                ✨ Official UK Driving Licence PNG downloaded! Keep it forever, Champion! ✨
+            </p>
+        </section>
+
+    </main>
+
+    <script>
+        /**
+         * =========================================================================
+         * 1. PROGRAMMATIC BLACK-BACKGROUND REMOVAL FOR CUSTOM CHARACTER SPRITE
+         * =========================================================================
+         * Automatically loads `F1-removebg-preview.jpg` from the same folder,
+         * removes pure/near-black exterior pixels on an offscreen canvas via BFS,
+         * and updates the Start Screen mascot, Canvas sprite, and UK Licence photo.
+         */
+        let cleanCharacterCanvas = null;
+        let characterReady = false;
+
+        function processCharacterImageSource(srcList, index = 0) {
+            if (index >= srcList.length) return;
+            const rawImg = new Image();
+            rawImg.src = srcList[index];
+
+            rawImg.onerror = function () {
+                processCharacterImageSource(srcList, index + 1);
+            };
+
+            rawImg.onload = function () {
+                const offscreen = document.createElement('canvas');
+                offscreen.width = rawImg.naturalWidth || rawImg.width;
+                offscreen.height = rawImg.naturalHeight || rawImg.height;
+                const oCtx = offscreen.getContext('2d');
+                oCtx.drawImage(rawImg, 0, 0);
+
+                const imgData = oCtx.getImageData(0, 0, offscreen.width, offscreen.height);
+                const data = imgData.data;
+
+                let minX = offscreen.width, minY = offscreen.height, maxX = 0, maxY = 0;
+
+                // Flood-fill from corners so dark outlines/hair inside the character stay intact
+                const w = offscreen.width;
+                const h = offscreen.height;
+                const visited = new Uint8Array(w * h);
+                const queue = new Int32Array(w * h);
+                let head = 0, tail = 0;
+
+                function isNearBlack(idx) {
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    return r < 30 && g < 30 && b < 30;
+                }
+
+                // Seed BFS from all 4 outer edges
+                for (let x = 0; x < w; x++) {
+                    const topIdx = x;
+                    const botIdx = (h - 1) * w + x;
+                    if (!visited[topIdx] && isNearBlack(topIdx * 4)) {
+                        visited[topIdx] = 1;
+                        queue[tail++] = topIdx;
+                    }
+                    if (!visited[botIdx] && isNearBlack(botIdx * 4)) {
+                        visited[botIdx] = 1;
+                        queue[tail++] = botIdx;
+                    }
+                }
+                for (let y = 0; y < h; y++) {
+                    const leftIdx = y * w;
+                    const rightIdx = y * w + (w - 1);
+                    if (!visited[leftIdx] && isNearBlack(leftIdx * 4)) {
+                        visited[leftIdx] = 1;
+                        queue[tail++] = leftIdx;
+                    }
+                    if (!visited[rightIdx] && isNearBlack(rightIdx * 4)) {
+                        visited[rightIdx] = 1;
+                        queue[tail++] = rightIdx;
+                    }
+                }
+
+                // BFS to make exterior black background transparent
+                while (head < tail) {
+                    const curr = queue[head++];
+                    const cx = curr % w;
+                    const cy = (curr - cx) / w;
+                    data[curr * 4 + 3] = 0;
+
+                    const neighbors = [
+                        cy > 0 ? curr - w : -1,
+                        cy < h - 1 ? curr + w : -1,
+                        cx > 0 ? curr - 1 : -1,
+                        cx < w - 1 ? curr + 1 : -1
+                    ];
+
+                    for (let i = 0; i < 4; i++) {
+                        const n = neighbors[i];
+                        if (n !== -1 && !visited[n] && isNearBlack(n * 4)) {
+                            visited[n] = 1;
+                            queue[tail++] = n;
+                        }
+                    }
+                }
+
+                // Smooth anti-aliased fringe & find tight bounding box
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        const idx = (y * w + x) * 4;
+                        if (data[idx + 3] > 0) {
+                            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+                            if (r < 38 && g < 38 && b < 38) {
+                                const hasTransparentNeighbor =
+                                    (x > 0 && data[idx - 1] === 0) ||
+                                    (x < w - 1 && data[idx + 7] === 0) ||
+                                    (y > 0 && data[idx - w * 4 + 3] === 0) ||
+                                    (y < h - 1 && data[idx + w * 4 + 3] === 0);
+                                if (hasTransparentNeighbor) {
+                                    data[idx + 3] = 85;
+                                }
+                            }
+                            if (x < minX) minX = x;
+                            if (x > maxX) maxX = x;
+                            if (y < minY) minY = y;
+                            if (y > maxY) maxY = y;
+                        }
+                    }
+                }
+
+                oCtx.putImageData(imgData, 0, 0);
+
+                // Crop cleanly to character bounds
+                const cropW = Math.max(1, maxX - minX + 1);
+                const cropH = Math.max(1, maxY - minY + 1);
+                cleanCharacterCanvas = document.createElement('canvas');
+                cleanCharacterCanvas.width = cropW;
+                cleanCharacterCanvas.height = cropH;
+                const cCtx = cleanCharacterCanvas.getContext('2d');
+                cCtx.drawImage(offscreen, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+
+                const cleanDataUrl = cleanCharacterCanvas.toDataURL('image/png');
+                document.getElementById('heroMascotImg').src = cleanDataUrl;
+                document.getElementById('licencePortraitImg').src = cleanDataUrl;
+                characterReady = true;
+            };
+        }
+
+        function prepareCustomCharacterSprite() {
+            processCharacterImageSource([
+                'F1-removebg-preview.jpg',
+                'F1-removebg-preview.png'
+            ]);
+        }
+
+        /**
+         * =========================================================================
+         * 2. WEB AUDIO API SOUND SYNTHESIZER (NO EXTERNAL AUDIO URLS)
+         * =========================================================================
+         */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playTone(freq, type, duration, vol = 0.12, slideTo = null) {
+                if (this.muted) return;
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    if (slideTo) {
+                        osc.frequency.exponentialRampToValueAtTime(slideTo, this.ctx.currentTime + duration);
+                    }
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            }
+
+            playTrophy() {
+                this.playTone(587.33, 'sine', 0.12, 0.15, 880);
+                setTimeout(() => this.playTone(880, 'triangle', 0.18, 0.15, 1174.66), 70);
+            }
+
+            playOvertake() {
+                this.playTone(220, 'sawtooth', 0.35, 0.14, 660);
+                setTimeout(() => this.playTone(440, 'square', 0.35, 0.12, 880), 120);
+            }
+
+            playCrash() {
+                this.playTone(160, 'sawtooth', 0.3, 0.2, 45);
+                this.playTone(110, 'square', 0.35, 0.2, 35);
+            }
+
+            playWin() {
+                const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+                notes.forEach((n, idx) => {
+                    setTimeout(() => this.playTone(n, 'triangle', 0.25, 0.18), idx * 120);
+                });
+            }
+        }
+
+        const sfx = new SoundFX();
+
+        /**
+         * =========================================================================
+         * 3. GAME STATE & CANVAS SETUP
+         * =========================================================================
+         */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const victoryScreen = document.getElementById('victoryScreen');
+        const hudBar = document.getElementById('hudBar');
+        const touchControls = document.getElementById('touchControls');
+        const overtakeBanner = document.getElementById('overtakeBanner');
+
+        const progressDisplay = document.getElementById('progressDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const livesDisplay = document.getElementById('livesDisplay');
+        const finalFailScore = document.getElementById('finalFailScore');
+        const crashReason = document.getElementById('crashReason');
+
+        const TARGET_DISTANCE = 100; // 0% to 100%
+
+        let gameState = 'START'; // START, PLAYING, GAMEOVER, VICTORY
+        let distancePct = 0;
+        let trophies = 0;
+        let lives = 3;
+        let roadOffset = 0;
+        let baseSpeed = 5.2;
+        let frameCount = 0;
+        let f1BossSpawned = false;
+        let invulnerableTimer = 0;
+
+        // Player Object (Hamza in his #1 Red Race Car)
+        const player = {
+            lane: 1, // 0: Left, 1: Center, 2: Right
+            x: 0,
+            y: 0,
+            width: 78,
+            height: 78,
+            targetX: 0,
+            tilt: 0
+        };
+
+        let obstacles = [];
+        let pickups = [];
+        let f1Rivals = [];
+        let raindrops = [];
+        let floatingTexts = [];
+
+        function resizeCanvas() {
+            const rect = canvasWrapper.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            updatePlayerPosition(true);
+            initRain();
+        }
+
+        function getLaneCenterX(laneIndex) {
+            const roadMargin = canvas.width * 0.11;
+            const roadWidth = canvas.width - roadMargin * 2;
+            const laneWidth = roadWidth / 3;
+            return roadMargin + laneWidth * laneIndex + laneWidth / 2;
+        }
+
+        function updatePlayerPosition(instant = false) {
+            player.width = Math.min(92, canvas.width * 0.25);
+            player.height = player.width;
+            player.y = canvas.height - player.height * 0.62 - 14;
+            player.targetX = getLaneCenterX(player.lane);
+            if (instant) {
+                player.x = player.targetX;
+            }
+        }
+
+        function initRain() {
+            raindrops = [];
+            for (let i = 0; i < 48; i++) {
+                raindrops.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    len: 10 + Math.random() * 14,
+                    speed: 9 + Math.random() * 6
+                });
+            }
+        }
+
+        /**
+         * =========================================================================
+         * 4. INPUT CONTROLS (KEYBOARD, TOUCH BUTTONS, AND SWIPE/DRAG)
+         * =========================================================================
+         */
+        function moveLeft() {
+            if (gameState !== 'PLAYING') return;
+            if (player.lane > 0) {
+                player.lane--;
+                player.tilt = -0.14;
+                updatePlayerPosition(false);
+                sfx.playTone(310, 'sine', 0.06, 0.06, 390);
+            }
+        }
+
+        function moveRight() {
+            if (gameState !== 'PLAYING') return;
+            if (player.lane < 2) {
+                player.lane++;
+                player.tilt = 0.14;
+                updatePlayerPosition(false);
+                sfx.playTone(310, 'sine', 0.06, 0.06, 390);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                moveLeft();
+            } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                moveRight();
+            }
+        });
+
+        const btnLeft = document.getElementById('btnLeft');
+        const btnRight = document.getElementById('btnRight');
+
+        ['touchstart', 'mousedown'].forEach(evt => {
+            btnLeft.addEventListener(evt, (e) => {
+                e.preventDefault();
+                btnLeft.classList.add('pressed');
+                moveLeft();
+            });
+            btnRight.addEventListener(evt, (e) => {
+                e.preventDefault();
+                btnRight.classList.add('pressed');
+                moveRight();
+            });
+        });
+
+        ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+            btnLeft.addEventListener(evt, () => btnLeft.classList.remove('pressed'));
+            btnRight.addEventListener(evt, () => btnRight.classList.remove('pressed'));
+        });
+
+        // Swipe or Tap directly on Canvas
+        let touchStartX = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (gameState !== 'PLAYING') return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchEndX - touchStartX;
+            if (Math.abs(diff) > 22) {
+                if (diff < 0) moveLeft();
+                else moveRight();
+            } else {
+                // Tap left or right half of canvas
+                const rect = canvas.getBoundingClientRect();
+                const tapX = touchEndX - rect.left;
+                if (tapX < rect.width / 2) moveLeft();
+                else moveRight();
+            }
+        }, { passive: true });
+
+        // Sound Toggle
+        const soundToggle = document.getElementById('soundToggle');
+        const soundIcon = document.getElementById('soundIcon');
+        soundToggle.addEventListener('click', () => {
+            sfx.muted = !sfx.muted;
+            soundIcon.textContent = sfx.muted ? '🔇' : '🔊';
+        });
+
+        /**
+         * =========================================================================
+         * 5. GAME LIFECYCLE & EVENTS
+         * =========================================================================
+         */
+        function startGame() {
+            sfx.init();
+            distancePct = 0;
+            trophies = 0;
+            lives = 3;
+            baseSpeed = 5.3;
+            frameCount = 0;
+            f1BossSpawned = false;
+            invulnerableTimer = 0;
+
+            obstacles = [];
+            pickups = [];
+            f1Rivals = [];
+            floatingTexts = [];
+
+            player.lane = 1;
+            player.tilt = 0;
+            updatePlayerPosition(true);
+            updateHUD();
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            victoryScreen.classList.add('hidden');
+            overtakeBanner.classList.add('hidden');
+            document.getElementById('screenshotHint').classList.add('hidden');
+
+            canvasWrapper.classList.remove('hidden');
+            hudBar.classList.remove('hidden');
+            touchControls.classList.remove('hidden');
+
+            resizeCanvas();
+            gameState = 'PLAYING';
+        }
+
+        function updateHUD() {
+            progressDisplay.textContent = `${Math.min(100, Math.floor(distancePct))}%`;
+            scoreDisplay.textContent = trophies;
+            livesDisplay.textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
+        }
+
+        function addFloatingText(text, x, y, color = '#facc15') {
+            floatingTexts.push({
+                text,
+                x,
+                y,
+                color,
+                alpha: 1,
+                dy: -1.7
+            });
+        }
+
+        function triggerOvertakeBanner() {
+            sfx.playOvertake();
+            overtakeBanner.classList.remove('hidden');
+            setTimeout(() => {
+                overtakeBanner.classList.add('hidden');
+            }, 2600);
+        }
+
+        function triggerVictory() {
+            gameState = 'VICTORY';
+            sfx.playWin();
+            hudBar.classList.add('hidden');
+            touchControls.classList.add('hidden');
+            canvasWrapper.classList.add('hidden');
+            overtakeBanner.classList.add('hidden');
+            victoryScreen.classList.remove('hidden');
+            launchCelebrationConfetti();
+        }
+
+        function triggerGameOver(reasonText) {
+            gameState = 'GAMEOVER';
+            sfx.playCrash();
+            finalFailScore.textContent = `${Math.floor(distancePct)}%`;
+            crashReason.textContent = reasonText;
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        /**
+         * =========================================================================
+         * 6. SPAWNING UK OBSTACLES, TROPHIES & RIVAL F1 BOSS
+         * =========================================================================
+         */
+        function spawnEntities() {
+            const spawnInterval = Math.max(44, Math.floor(78 - distancePct * 0.25));
+
+            // Spawn British Driving Test Obstacles
+            if (frameCount % spawnInterval === 0 && distancePct < 92) {
+                const lane = Math.floor(Math.random() * 3);
+                const obstacleCatalog = [
+                    {
+                        type: 'DVSA',
+                        label: 'DVSA FAIL',
+                        reason: 'Stopped by a Strict DVSA Examiner waving a red FAIL clipboard!'
+                    },
+                    {
+                        type: 'BUS',
+                        label: 'LONDON BUS',
+                        reason: 'Blocked by a giant Red London Double-Decker Bus!'
+                    },
+                    {
+                        type: 'ROUNDABOUT',
+                        label: 'ROUNDABOUT',
+                        reason: 'Got dizzy inside an Endless British Magic Roundabout!'
+                    },
+                    {
+                        type: 'CAMERA',
+                        label: '20 MPH',
+                        reason: 'Flashed by a strict 20 mph UK Speed Camera!'
+                    }
+                ];
+                const chosen = obstacleCatalog[Math.floor(Math.random() * obstacleCatalog.length)];
+                obstacles.push({
+                    lane,
+                    x: getLaneCenterX(lane),
+                    y: -65,
+                    size: Math.min(56, canvas.width * 0.15),
+                    ...chosen
+                });
+            }
+
+            // Spawn British Tea, Scones & Gold Stars
+            if (frameCount % 50 === 22) {
+                const lane = Math.floor(Math.random() * 3);
+                const conflict = obstacles.some(o => o.lane === lane && o.y < 75);
+                if (!conflict) {
+                    const rewardItems = [
+                        { icon: '☕', label: 'BRITISH TEA! +7%', boost: 7 },
+                        { icon: '🧁', label: 'FRESH SCONE! +7%', boost: 7 },
+                        { icon: '⭐', label: 'GOLD STAR! +9%', boost: 9 }
+                    ];
+                    const chosenItem = rewardItems[Math.floor(Math.random() * rewardItems.length)];
+                    pickups.push({
+                        lane,
+                        x: getLaneCenterX(lane),
+                        y: -45,
+                        radius: 16,
+                        pulse: 0,
+                        ...chosenItem
+                    });
+                }
+            }
+
+            // Spawn Final F1 Rival Car around 76% distance so Hamza overtakes it before 100%
+            if (distancePct >= 76 && !f1BossSpawned) {
+                f1BossSpawned = true;
+                const availableLanes = [0, 1, 2].filter(l => l !== player.lane);
+                const f1Lane = availableLanes[Math.floor(Math.random() * availableLanes.length)];
+                f1Rivals.push({
+                    lane: f1Lane,
+                    x: getLaneCenterX(f1Lane),
+                    y: -95,
+                    width: Math.min(50, canvas.width * 0.135),
+                    height: Math.min(82, canvas.width * 0.22),
+                    overtaken: false
+                });
+            }
+        }
+
+        /**
+         * =========================================================================
+         * 7. UPDATE GAME LOOP
+         * =========================================================================
+         */
+        function update() {
+            // Animate British rain continuously
+            raindrops.forEach(r => {
+                r.y += r.speed;
+                r.x -= 1.3;
+                if (r.y > canvas.height) {
+                    r.y = -15;
+                    r.x = Math.random() * (canvas.width + 40);
+                }
+            });
+
+            if (gameState !== 'PLAYING') return;
+
+            frameCount++;
+            const currentSpeed = baseSpeed + (distancePct / 34);
+            roadOffset = (roadOffset + currentSpeed * 1.45) % 48;
+
+            // Smooth horizontal lane steering & tilt recovery
+            player.x += (player.targetX - player.x) * 0.24;
+            player.tilt *= 0.85;
+
+            if (invulnerableTimer > 0) invulnerableTimer--;
+
+            // Advance distance toward 100%
+            distancePct += 0.085;
+            if (distancePct >= TARGET_DISTANCE) {
+                distancePct = TARGET_DISTANCE;
+                updateHUD();
+                triggerVictory();
+                return;
+            }
+
+            spawnEntities();
+
+            // Update Tea, Scones & Gold Stars
+            for (let i = pickups.length - 1; i >= 0; i--) {
+                const p = pickups[i];
+                p.y += currentSpeed;
+                p.pulse += 0.16;
+
+                if (Math.abs(p.x - player.x) < player.width * 0.55 &&
+                    Math.abs(p.y - player.y) < player.height * 0.5) {
+                    trophies += 1;
+                    distancePct = Math.min(100, distancePct + p.boost);
+                    sfx.playTrophy();
+                    addFloatingText(`${p.label} ${p.icon}`, p.x, p.y - 12, '#fde047');
+                    pickups.splice(i, 1);
+
+                    if (distancePct >= TARGET_DISTANCE) {
+                        updateHUD();
+                        triggerVictory();
+                        return;
+                    }
+                    continue;
+                }
+
+                if (p.y > canvas.height + 50) {
+                    pickups.splice(i, 1);
+                }
+            }
+
+            // Update Rival F1 Boss Car
+            for (let i = f1Rivals.length - 1; i >= 0; i--) {
+                const f1 = f1Rivals[i];
+                f1.y += currentSpeed * 0.68;
+
+                if (!f1.overtaken && f1.y > player.y) {
+                    f1.overtaken = true;
+                    distancePct = Math.min(100, distancePct + 12);
+                    triggerOvertakeBanner();
+                    addFloatingText('OVERTAKEN! NEW WORLD CHAMPION! 🔥', canvas.width / 2, player.y - 45, '#38bdf8');
+                }
+
+                if (f1.y > canvas.height + 110) {
+                    f1Rivals.splice(i, 1);
+                }
+            }
+
+            // Update Obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.y += currentSpeed;
+
+                const hitX = Math.abs(obs.x - player.x) < (obs.size + player.width * 0.65) * 0.38;
+                const hitY = Math.abs(obs.y - player.y) < (obs.size + player.height * 0.65) * 0.36;
+
+                if (hitX && hitY && invulnerableTimer === 0) {
+                    lives--;
+                    invulnerableTimer = 75;
+                    sfx.playCrash();
+                    addFloatingText('WATCH OUT! -1 ❤️', player.x, player.y - 25, '#f87171');
+                    obstacles.splice(i, 1);
+                    updateHUD();
+
+                    if (lives <= 0) {
+                        triggerGameOver(obs.reason);
+                        return;
+                    }
+                    continue;
+                }
+
+                if (obs.y > canvas.height + 80) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // Update Floating Feedback Text
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y += ft.dy;
+                ft.alpha -= 0.02;
+                if (ft.alpha <= 0) floatingTexts.splice(i, 1);
+            }
+
+            updateHUD();
+        }
+
+        /**
+         * =========================================================================
+         * 8. RENDERING PIPELINE (UK RAINY CIRCUIT & CUSTOM HAMZA CHARACTER)
+         * =========================================================================
+         */
+        function drawBritishRoad() {
+            const w = canvas.width;
+            const h = canvas.height;
+            const roadMargin = w * 0.11;
+            const roadWidth = w - roadMargin * 2;
+
+            // Rainy British Countryside Grass
+            ctx.fillStyle = '#14532d';
+            ctx.fillRect(0, 0, w, h);
+
+            // Union Jack / Red-White-Blue Racing Curbs
+            const curbWidth = 11;
+            const segmentHeight = 24;
+            const curbColors = ['#dc2626', '#f8fafc', '#1d4ed8'];
+            for (let y = -segmentHeight * 3 + roadOffset; y < h; y += segmentHeight) {
+                const idx = Math.abs(Math.floor((y - roadOffset) / segmentHeight)) % 3;
+                ctx.fillStyle = curbColors[idx];
+                ctx.fillRect(roadMargin - curbWidth, y, curbWidth, segmentHeight);
+                ctx.fillRect(w - roadMargin, y, curbWidth, segmentHeight);
+            }
+
+            // Wet British Tarmac Road
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(roadMargin, 0, roadWidth, h);
+
+            // Rain Reflection Sheen
+            const grad = ctx.createLinearGradient(roadMargin, 0, w - roadMargin, 0);
+            grad.addColorStop(0, 'rgba(255,255,255,0.02)');
+            grad.addColorStop(0.5, 'rgba(56,189,248,0.09)');
+            grad.addColorStop(1, 'rgba(255,255,255,0.02)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(roadMargin, 0, roadWidth, h);
+
+            // UK Left-Hand Traffic Dashed Lane Markings
+            ctx.strokeStyle = 'rgba(248, 250, 252, 0.6)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([24, 24]);
+            ctx.lineDashOffset = -roadOffset;
+
+            const laneW = roadWidth / 3;
+            for (let i = 1; i <= 2; i++) {
+                const lx = roadMargin + laneW * i;
+                ctx.beginPath();
+                ctx.moveTo(lx, 0);
+                ctx.lineTo(lx, h);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // Subtle "KEEP LEFT" road stencil
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.font = '900 13px Orbitron, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('KEEP LEFT • UK GP', w / 2, h * 0.25);
+            ctx.restore();
+        }
+
+        function drawHamzaPlayer() {
+            if (invulnerableTimer > 0 && Math.floor(invulnerableTimer / 5) % 2 === 0) {
+                return;
+            }
+
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(player.tilt);
+
+            // Turbo Exhaust Flame Underneath Rear
+            const flameLen = 12 + Math.random() * 12;
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.moveTo(-10, player.height * 0.34);
+            ctx.lineTo(0, player.height * 0.34 + flameLen);
+            ctx.lineTo(10, player.height * 0.34);
+            ctx.closePath();
+            ctx.fill();
+
+            // Soft Ground Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.42)';
+            ctx.beginPath();
+            ctx.ellipse(0, player.height * 0.34, player.width * 0.42, 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (characterReady && cleanCharacterCanvas) {
+                // Draw Hamza in his sleek red sports car
+                const aspect = cleanCharacterCanvas.width / cleanCharacterCanvas.height;
+                const drawW = player.width * 1.24;
+                const drawH = drawW / aspect;
+                ctx.drawImage(
+                    cleanCharacterCanvas,
+                    -drawW / 2,
+                    -drawH / 2,
+                    drawW,
+                    drawH
+                );
+            } else {
+                // Fallback while image initializes
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.roundRect(-22, -32, 44, 64, 12);
+                ctx.fill();
+            }
+
+            // Glowing "HAMZA #1" Floating Tag
+            ctx.fillStyle = '#facc15';
+            ctx.font = '900 10px Orbitron, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = '#000000';
+            ctx.shadowBlur = 4;
+            ctx.fillText('HAMZA #1', 0, -player.height * 0.56);
+
+            ctx.restore();
+        }
+
+        function drawF1Rival(f1) {
+            ctx.save();
+            ctx.translate(f1.x, f1.y);
+
+            // Sleek Rival Formula 1 Car (Silver/Teal)
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.roundRect(-f1.width / 2 + 4, -f1.height / 2 + 4, f1.width - 8, f1.height - 8, 10);
+            ctx.fill();
+            ctx.strokeStyle = '#bae6fd';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // F1 Aero Wings
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(-f1.width / 2 - 2, -f1.height / 2 + 2, f1.width + 4, 7);
+            ctx.fillRect(-f1.width / 2 - 2, f1.height / 2 - 9, f1.width + 4, 8);
+
+            // F1 Wheels
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(-f1.width / 2 - 4, -f1.height / 2 + 12, 7, 15);
+            ctx.fillRect(f1.width / 2 - 3, -f1.height / 2 + 12, 7, 15);
+            ctx.fillRect(-f1.width / 2 - 4, f1.height / 2 - 24, 7, 15);
+            ctx.fillRect(f1.width / 2 - 3, f1.height / 2 - 24, 7, 15);
+
+            // Label
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 9px Orbitron, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('F1 RIVAL', 0, -f1.height / 2 - 6);
+
+            ctx.restore();
+        }
+
+        function drawObstacle(obs) {
+            ctx.save();
+            ctx.translate(obs.x, obs.y);
+            const r = obs.size * 0.5;
+
+            if (obs.type === 'DVSA') {
+                // Strict DVSA Examiner with Clipboard & Red FAIL Stamp
+                ctx.fillStyle = '#facc15';
+                ctx.beginPath();
+                ctx.roundRect(-r, -r, obs.size, obs.size, 12);
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#dc2626';
+                ctx.stroke();
+
+                ctx.font = '21px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('📋', 0, -4);
+
+                ctx.fillStyle = '#dc2626';
+                ctx.font = '900 8px Orbitron, sans-serif';
+                ctx.fillText('DVSA FAIL', 0, r - 8);
+            } else if (obs.type === 'BUS') {
+                // Iconic Red London Double-Decker Bus
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.roundRect(-r * 0.92, -r * 1.15, obs.size * 0.92, obs.size * 1.15, 10);
+                ctx.fill();
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#fecaca';
+                ctx.stroke();
+
+                ctx.font = '23px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🚌', 0, -4);
+
+                ctx.fillStyle = '#fef08a';
+                ctx.font = '900 7px Orbitron, sans-serif';
+                ctx.fillText('UK BUS', 0, r - 4);
+            } else if (obs.type === 'ROUNDABOUT') {
+                // Endless Magic Roundabout
+                ctx.fillStyle = '#eff6ff';
+                ctx.beginPath();
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#2563eb';
+                ctx.stroke();
+
+                ctx.font = '21px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🔄', 0, -2);
+
+                ctx.fillStyle = '#1e3a8a';
+                ctx.font = '900 7px Orbitron, sans-serif';
+                ctx.fillText('ROUNDABOUT', 0, r - 7);
+            } else {
+                // 20 mph UK Speed Camera
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = '#dc2626';
+                ctx.stroke();
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '900 14px Orbitron, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('20', 0, -2);
+
+                ctx.font = '800 7px sans-serif';
+                ctx.fillText('MPH', 0, 11);
+            }
+
+            ctx.restore();
+        }
+
+        function drawPickup(p) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            const scale = 1 + Math.sin(p.pulse) * 0.15;
+            ctx.scale(scale, scale);
+
+            ctx.fillStyle = 'rgba(250, 204, 21, 0.3)';
+            ctx.beginPath();
+            ctx.arc(0, 0, p.radius + 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.font = '24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(p.icon || '⭐', 0, 1);
+
+            ctx.restore();
+        }
+
+        function drawRain() {
+            ctx.strokeStyle = 'rgba(186, 230, 253, 0.38)';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            raindrops.forEach(r => {
+                ctx.moveTo(r.x, r.y);
+                ctx.lineTo(r.x - 2, r.y + r.len);
+            });
+            ctx.stroke();
+        }
+
+        function drawFloatingTexts() {
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.alpha);
+                ctx.fillStyle = ft.color;
+                ctx.font = '900 13px "Plus Jakarta Sans", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = '#0f172a';
+                ctx.shadowBlur = 5;
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawBritishRoad();
+            pickups.forEach(drawPickup);
+            f1Rivals.forEach(drawF1Rival);
+            obstacles.forEach(drawObstacle);
+
+            if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
+                drawHamzaPlayer();
+            }
+
+            drawRain();
+            drawFloatingTexts();
+        }
+
+        /**
+         * =========================================================================
+         * 9. CELEBRATION CONFETTI BURST ON VICTORY
+         * =========================================================================
+         */
+        function launchCelebrationConfetti() {
+            const confettiCanvas = document.createElement('canvas');
+            confettiCanvas.style.position = 'fixed';
+            confettiCanvas.style.inset = '0';
+            confettiCanvas.style.width = '100vw';
+            confettiCanvas.style.height = '100vh';
+            confettiCanvas.style.pointerEvents = 'none';
+            confettiCanvas.style.zIndex = '50';
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+            document.body.appendChild(confettiCanvas);
+
+            const cCtx = confettiCanvas.getContext('2d');
+            const colors = ['#ef4444', '#facc15', '#3b82f6', '#10b981', '#ec4899', '#ffffff'];
+            const pieces = Array.from({ length: 110 }, () => ({
+                x: Math.random() * confettiCanvas.width,
+                y: -20 - Math.random() * confettiCanvas.height * 0.4,
+                w: 8 + Math.random() * 8,
+                h: 5 + Math.random() * 6,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vx: (Math.random() - 0.5) * 4,
+                vy: 2.5 + Math.random() * 4,
+                rot: Math.random() * Math.PI * 2,
+                vRot: (Math.random() - 0.5) * 0.2
+            }));
+
+            let elapsed = 0;
+            function animateConfetti() {
+                elapsed++;
+                cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+                pieces.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.rot += p.vRot;
+
+                    cCtx.save();
+                    cCtx.translate(p.x, p.y);
+                    cCtx.rotate(p.rot);
+                    cCtx.fillStyle = p.color;
+                    cCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    cCtx.restore();
+                });
+
+                if (elapsed < 220) {
+                    requestAnimationFrame(animateConfetti);
+                } else {
+                    confettiCanvas.remove();
+                }
+            }
+
+            animateConfetti();
+        }
+
+        /**
+         * =========================================================================
+         * 10. EXPORT OFFICIAL UK DRIVING LICENCE AS A DOWNLOADABLE PNG IMAGE
+         * =========================================================================
+         */
+        function downloadLicenceAsPNG() {
+            const cardCanvas = document.createElement('canvas');
+            cardCanvas.width = 960;
+            cardCanvas.height = 610;
+            const c = cardCanvas.getContext('2d');
+
+            // UK Photocard Pink-to-Blue Security Gradient Background
+            const bgGrad = c.createLinearGradient(0, 0, cardCanvas.width, cardCanvas.height);
+            bgGrad.addColorStop(0, '#fce7f3');
+            bgGrad.addColorStop(0.4, '#fbcfe8');
+            bgGrad.addColorStop(0.75, '#e0f2fe');
+            bgGrad.addColorStop(1, '#dbeafe');
+            c.fillStyle = bgGrad;
+            c.beginPath();
+            c.roundRect(12, 12, cardCanvas.width - 24, cardCanvas.height - 24, 34);
+            c.fill();
+            c.lineWidth = 8;
+            c.strokeStyle = '#be185d';
+            c.stroke();
+
+            // Union Jack Flag Emblem (Top Left)
+            c.save();
+            c.beginPath();
+            c.roundRect(44, 38, 96, 58, 8);
+            c.clip();
+            c.fillStyle = '#012169';
+            c.fillRect(44, 38, 96, 58);
+            c.strokeStyle = '#ffffff';
+            c.lineWidth = 10;
+            c.beginPath();
+            c.moveTo(44, 38); c.lineTo(140, 96);
+            c.moveTo(140, 38); c.lineTo(44, 96);
+            c.stroke();
+            c.strokeStyle = '#C8102E';
+            c.lineWidth = 5;
+            c.beginPath();
+            c.moveTo(44, 38); c.lineTo(140, 96);
+            c.moveTo(140, 38); c.lineTo(44, 96);
+            c.stroke();
+            c.fillStyle = '#ffffff';
+            c.fillRect(83, 38, 18, 58);
+            c.fillRect(44, 58, 96, 18);
+            c.fillStyle = '#C8102E';
+            c.fillRect(87, 38, 10, 58);
+            c.fillRect(44, 62, 96, 10);
+            c.restore();
+
+            // Header Titles
+            c.fillStyle = '#831843';
+            c.font = '900 22px "Plus Jakarta Sans", sans-serif';
+            c.fillText('OFFICIAL UK DRIVING LICENCE', 158, 63);
+            c.fillStyle = '#172554';
+            c.font = '900 23px Orbitron, sans-serif';
+            c.fillText('SPECIAL F1 & UNSTOPPABLE LEGEND EDITION', 158, 92);
+
+            // Header Divider
+            c.strokeStyle = 'rgba(190, 24, 93, 0.35)';
+            c.lineWidth = 3;
+            c.beginPath();
+            c.moveTo(44, 114);
+            c.lineTo(cardCanvas.width - 44, 114);
+            c.stroke();
+
+            // Portrait Box
+            const pGrad = c.createLinearGradient(44, 134, 44, 374);
+            pGrad.addColorStop(0, '#bae6fd');
+            pGrad.addColorStop(1, '#c7d2fe');
+            c.fillStyle = pGrad;
+            c.beginPath();
+            c.roundRect(44, 134, 240, 240, 22);
+            c.fill();
+            c.lineWidth = 4;
+            c.strokeStyle = 'rgba(190, 24, 93, 0.5)';
+            c.stroke();
+
+            if (characterReady && cleanCharacterCanvas) {
+                const aspect = cleanCharacterCanvas.width / cleanCharacterCanvas.height;
+                let dw = 216, dh = 216;
+                if (aspect > 1) dh = dw / aspect;
+                else dw = dh * aspect;
+                c.drawImage(
+                    cleanCharacterCanvas,
+                    44 + (240 - dw) / 2,
+                    134 + (230 - dh) / 2,
+                    dw,
+                    dh
+                );
+            }
+
+            // Badge under portrait
+            c.fillStyle = '#be185d';
+            c.beginPath();
+            c.roundRect(104, 342, 120, 24, 8);
+            c.fill();
+            c.fillStyle = '#ffffff';
+            c.font = '900 13px Orbitron, sans-serif';
+            c.textAlign = 'center';
+            c.fillText('UK-F1 #001', 164, 358);
+            c.textAlign = 'left';
+
+            // Driver Fields
+            c.fillStyle = '#9d174d';
+            c.font = '800 14px "Plus Jakarta Sans", sans-serif';
+            c.fillText('1. SURNAME / ISSUED TO', 310, 158);
+            c.fillStyle = '#020617';
+            c.font = '900 34px Orbitron, sans-serif';
+            c.fillText('HAMZA', 310, 194);
+
+            c.fillStyle = '#9d174d';
+            c.font = '800 14px "Plus Jakarta Sans", sans-serif';
+            c.fillText('2. OFFICIAL TITLE', 310, 228);
+            c.fillStyle = '#172554';
+            c.font = '900 22px "Plus Jakarta Sans", sans-serif';
+            c.fillText('UNSTOPPABLE UK ROAD LEGEND', 310, 256);
+
+            c.fillStyle = '#9d174d';
+            c.font = '800 14px "Plus Jakarta Sans", sans-serif';
+            c.fillText('4c. ISSUING AUTHORITY', 310, 294);
+            c.fillStyle = '#9f1239';
+            c.font = '900 19px "Plus Jakarta Sans", sans-serif';
+            c.fillText('DVSA (OVERRULED BY LOVE)', 310, 320);
+
+            c.fillStyle = '#9d174d';
+            c.font = '800 14px "Plus Jakarta Sans", sans-serif';
+            c.fillText('9. CATEGORIES', 650, 294);
+            c.fillStyle = '#065f46';
+            c.font = '900 19px "Plus Jakarta Sans", sans-serif';
+            c.fillText('B • F1 • LEGEND', 650, 320);
+
+            // Endorsement Box
+            c.fillStyle = 'rgba(255, 255, 255, 0.88)';
+            c.beginPath();
+            c.roundRect(44, 394, cardCanvas.width - 88, 96, 18);
+            c.fill();
+            c.lineWidth = 2;
+            c.strokeStyle = 'rgba(244, 114, 182, 0.6)';
+            c.stroke();
+
+            c.fillStyle = '#831843';
+            c.font = '900 16px "Plus Jakarta Sans", sans-serif';
+            c.fillText('🏅 12. OFFICIAL DVSA ENDORSEMENT NOTES:', 66, 422);
+            c.fillStyle = '#1e293b';
+            c.font = '700 17px "Plus Jakarta Sans", sans-serif';
+            c.fillText('• Passed with 0 minors — faster than F1 cars', 66, 449);
+            c.fillText('• Certified King of UK Roundabouts', 66, 475);
+
+            // Heartwarming LDR Footer Banner
+            const bannerGrad = c.createLinearGradient(44, 506, cardCanvas.width - 44, 574);
+            bannerGrad.addColorStop(0, '#e11d48');
+            bannerGrad.addColorStop(1, '#db2777');
+            c.fillStyle = bannerGrad;
+            c.beginPath();
+            c.roundRect(44, 506, cardCanvas.width - 88, 68, 18);
+            c.fill();
+
+            c.fillStyle = '#ffffff';
+            c.font = '800 20px "Plus Jakarta Sans", sans-serif';
+            c.textAlign = 'center';
+            c.fillText('"Distance can\'t stop the best driver in the world. So proud of you, Hamza! ❤️"', cardCanvas.width / 2, 547);
+
+            // Trigger PNG Download
+            const link = document.createElement('a');
+            link.download = 'Hamza-Official-UK-F1-Driving-Licence.png';
+            link.href = cardCanvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /**
+         * =========================================================================
+         * 11. MAIN ANIMATION LOOP & EVENT BINDINGS
+         * =========================================================================
+         */
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('retryBtn').addEventListener('click', startGame);
+        document.getElementById('playAgainBtn').addEventListener('click', startGame);
+
+        document.getElementById('saveToastBtn').addEventListener('click', () => {
+            downloadLicenceAsPNG();
+            const hint = document.getElementById('screenshotHint');
+            hint.classList.remove('hidden');
+            sfx.playTrophy();
+        });
+
+        /**
+         * =========================================================================
+         * 12. ONE-CLICK GITHUB PAGES ZIP BUNDLE GENERATOR
+         * =========================================================================
+         */
+        async function downloadGitHubZipBundle() {
+            if (typeof JSZip === 'undefined') return;
+            const zip = new JSZip();
+
+            // 1. Clean standalone index.html (with current document HTML)
+            const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            zip.file('index.html', fullHtml);
+
+            // 2. .nojekyll so GitHub Pages serves all static files directly
+            zip.file('.nojekyll', '');
+
+            // 3. README.md with quick instructions
+            const readmeText = `# HAMZA GP: Faster Than F1 (Official UK Driving Redemption)\n\n## Files Included in This Repository\n1. \`index.html\` — Complete HTML5, CSS3 & JavaScript arcade game + UK Driving Licence generator\n2. \`F1-removebg-preview.jpg\` — Custom Hamza driver character sprite (place in the same root folder)\n3. \`.nojekyll\` — Ensures GitHub Pages serves static assets directly\n\n## How to Host on GitHub Pages\n1. Upload \`index.html\`, \`.nojekyll\`, \`README.md\`, and \`F1-removebg-preview.jpg\` to the root of your GitHub repository.\n2. Open **Settings > Pages**, select **Branch: \`main\`** and **Folder: \`/ (root)\`**, then click **Save**.\n`;
+            zip.file('README.md', readmeText);
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hamza-uk-gp-github-bundle.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('downloadZipBtn').addEventListener('click', downloadGitHubZipBundle);
+
+        window.addEventListener('resize', () => {
+            if (!canvasWrapper.classList.contains('hidden')) {
+                resizeCanvas();
+            }
+        });
+
+        window.onload = function () {
+            prepareCustomCharacterSprite();
+            resizeCanvas();
+            gameLoop();
+        };
+    </script>
+
+</body></html>
